@@ -35,6 +35,20 @@
       "Status Bar Layout": {
         "components": [
           {
+            "class": "iTermStatusBarHostnameComponent",
+            "configuration": {
+              "knobs": {
+                "path": "hostname",
+                "base: priority": 5,
+                "base: compression resistance": 1
+              },
+              "layout advanced configuration dictionary value": {
+                "font": ".AppleSystemUIFont 12",
+                "algorithm": 0
+              }
+            }
+          },
+          {
             "class": "iTermStatusBarWorkingDirectoryComponent",
             "configuration": {
               "knobs": {
@@ -55,35 +69,6 @@
             "configuration": {
               "knobs": {
                 "iTermStatusBarGitComponentPollingIntervalKey": 2,
-                "base: priority": 5,
-                "base: compression resistance": 1,
-                "minwidth": 0,
-                "maxwidth": 1.7976931348623157e+308
-              },
-              "layout advanced configuration dictionary value": {
-                "font": ".AppleSystemUIFont 12",
-                "algorithm": 0
-              }
-            }
-          },
-          {
-            "class": "iTermStatusBarHostnameComponent",
-            "configuration": {
-              "knobs": {
-                "path": "hostname",
-                "base: priority": 5,
-                "base: compression resistance": 1
-              },
-              "layout advanced configuration dictionary value": {
-                "font": ".AppleSystemUIFont 12",
-                "algorithm": 0
-              }
-            }
-          },
-          {
-            "class": "iTermStatusBarJobComponent",
-            "configuration": {
-              "knobs": {
                 "base: priority": 5,
                 "base: compression resistance": 1,
                 "minwidth": 0,
