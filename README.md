@@ -52,6 +52,7 @@ Dynamic Profile에는 다음 값이 들어 있습니다.
 - Alternate Screen의 스크롤백 저장: 켜기
 - 왼쪽 Option: `Esc+`
 - 오른쪽 Option: `Normal`
+- 단어 단위 이동·줄 편집 키 매핑: `⌥←`/`⌥→`, `⌥⌫`, `⌘←`/`⌘→`, `⌘⌫` (아래 표 참고)
 - 상태바: 호스트 이름, 현재 디렉터리, Git 상태
 
 설치 시 iTerm2가 종료되어 있으면 다음 앱 전체 설정도 적용합니다.
@@ -63,6 +64,45 @@ Dynamic Profile에는 다음 값이 들어 있습니다.
 - 상태바 위치: 아래쪽
 
 Hotkey Window는 단축키 충돌과 화면 배치가 개인마다 달라 자동 생성하지 않습니다. 필요하면 **Settings → Keys → Hotkey → Create a Dedicated Hotkey Window**에서 직접 추가하는 편이 안전합니다.
+
+## 단어 단위 이동과 줄 편집 단축키
+
+macOS의 다른 텍스트 입력란처럼 `⌥←`/`⌥→`로 단어를 건너뛰고, `⌘←`/`⌘→`로 줄 처음과 끝으로 이동하는 매핑이 프로필에 들어 있습니다.
+
+| 키               | 동작                       | iTerm2가 보내는 값 | 셸 동작(zsh/bash 공통) |
+|------------------|----------------------------|--------------------|------------------------|
+| `⌥←`             | 한 단어 왼쪽으로 이동      | `ESC b`            | `backward-word`        |
+| `⌥→`             | 한 단어 오른쪽으로 이동    | `ESC f`            | `forward-word`         |
+| `⌥⌫`             | 커서 앞 단어 삭제          | `ESC DEL`          | `backward-kill-word`   |
+| `⌥`+`fn`+`Delete` | 커서 뒤 단어 삭제          | `ESC d`            | `kill-word`            |
+| `⌘←`             | 줄 처음으로 이동           | `0x01` (`^A`)      | `beginning-of-line`    |
+| `⌘→`             | 줄 끝으로 이동             | `0x05` (`^E`)      | `end-of-line`          |
+| `⌘⌫`             | 줄 전체 삭제               | `0x15` (`^U`)      | `kill-whole-line`      |
+
+### 왜 셸 설정이 아니라 iTerm2 키 매핑인가
+
+왼쪽 Option이 `Esc+`이므로 `⌥b`/`⌥f`는 원래부터 단어 이동이 됩니다. 하지만 `⌥←`는 `^[^[[D`라는 시퀀스를 보내는데, zsh(zle)와 bash(readline) 어느 쪽에도 이 시퀀스의 기본 바인딩이 없어 아무 일도 일어나지 않습니다.
+
+```bash
+zsh -i -c 'bindkey "\eb"; bindkey "\e\e[D"'
+# "^[b"    backward-word   ← ⌥b 는 동작
+# "^[^[[D" undefined-key   ← ⌥← 는 정의 없음
+```
+
+그래서 `~/.zshrc`에 `bindkey`를 추가하는 대신, iTerm2 단계에서 `⌥←`를 아예 `ESC b`로 바꿔 보냅니다. `ESC b`/`ESC f`는 zle와 readline 양쪽의 표준 바인딩이라, **SSH로 접속한 원격 서버나 Docker 컨테이너에서도 그대로 동작합니다.** 셸 설정 파일을 고치는 방식은 그 파일이 있는 로컬 셸에만 적용됩니다.
+
+이 매핑은 iTerm2가 앱 번들에 담아 배포하는 **Natural Text Editing** 프리셋
+(`/Applications/iTerm.app/Contents/Resources/PresetKeyMappings.plist`)과 동일한 값이며, 프로필 키 매핑은 `Option Key Sends` 설정보다 우선 적용되므로 기존 `Esc+` 설정과 충돌하지 않습니다. 좌우 어느 Option 키를 눌러도 동작하므로, 오른쪽 Option의 악센트 문자 입력(`Normal`)도 그대로 유지됩니다.
+
+### 공식 프리셋과 다른 점 한 가지
+
+Natural Text Editing 프리셋에는 수식키 없는 `fn`+`Delete`를 `0x04`(`^D`)로 보내는 항목이 하나 더 있는데, **이 묶음에서는 일부러 제외했습니다.** `^D`는 셸 밖에서 EOF 신호라 `cat`, Python REPL, `docker run -it` 같은 상황에서 프로그램이 종료됩니다. 제외하면 iTerm2 기본값 `^[[3~`가 유지되고 zsh에서 `delete-char`로 정상 동작하므로 더 안전하고 정확합니다.
+
+### GUI에서 확인하고 바꾸기
+
+1. **Settings → Profiles → Developer Recommended → Keys → Key Mappings**에서 위 7개 항목을 확인할 수 있습니다.
+2. **Presets...** 버튼 → **Natural Text Editing**을 누르면 iTerm2 원본 프리셋(`fn`+`Delete` 포함 8개)으로 덮어씁니다.
+3. 이 프로필은 `Rewritable`이 켜져 있어 GUI에서 바꾼 내용이 Dynamic Profile 파일에 다시 기록됩니다. 저장소에 반영하려면 `./export-preferences.sh`로 내보낸 뒤 `profiles/developer-recommended.json`의 `Keyboard Map`에 옮기세요.
 
 ## 상태바 항목 선택하기
 
@@ -285,6 +325,7 @@ Dynamic Profile과 앱 전체 설정을 최신 설치 전 상태로 함께 되�
 - 설치 스크립트는 Homebrew의 `font-jetbrains-mono-nerd-font` 패키지에 포함된 `JetBrainsMonoNerdFontMono-Regular.ttf`를 확인하고, iTerm2 프로필에 정확한 PostScript 이름인 `JetBrainsMonoNFM-Regular 14`를 강제로 기록합니다. 폰트가 보이지 않으면
   iTerm2를 완전히 종료했다가 다시 실행하고 **Settings → Profiles → Text**에서 값이 `JetBrainsMono Nerd Font Mono Regular 14`로 표시되는지 확인하세요.
 - 한글 모양이 마음에 들지 않으면 **Settings → Profiles → Text**에서 Non-ASCII용 별도 폰트를 켜고 D2Coding 14pt를 지정하세요. D2Coding 설치 여부와 내부 폰트 이름이 배포판마다 달라 자동 적용하지 않았습니다.
+- 키 매핑은 iTerm2가 `PresetKeyMappings.plist`로 배포하는 Natural Text Editing 프리셋과 동일한 형식(프로필의 `Keyboard Map`)을 사용하며, iTerm2 3.6.11에서 확인했습니다. 단축키가 동작하지 않으면 **Settings → Profiles → Keys → Key Mappings** 목록에 7개 항목이 보이는지 먼저 확인하세요.
 - Git/원격 호스트/디렉터리 상태 표시가 비어 있으면 새 세션에서 Shell Integration이 동작하는지 먼저 확인하세요. 일반적인 로컬 로그인 셸에서는 이 프로필이 자동 로드를 요청합니다.
 
 ## 공식 문서
@@ -294,3 +335,4 @@ Dynamic Profile과 앱 전체 설정을 최신 설치 전 상태로 함께 되�
 - Shell Integration: <https://iterm2.com/documentation-shell-integration.html>
 - Text/Font 설정: <https://iterm2.com/documentation-preferences-profiles-text.html>
 - Terminal/Scrollback 설정: <https://iterm2.com/documentation-preferences-profiles-terminal.html>
+- Keys/키 매핑 설정: <https://iterm2.com/documentation-preferences-profiles-keys.html>

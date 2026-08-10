@@ -31,6 +31,36 @@
       "Scrollback in Alternate Screen": true,
       "Option Key Sends": 2,
       "Right Option Key Sends": 0,
+      "Keyboard Map": {
+        "f702-0x280000": {
+          "Action": 10,
+          "Text": "b"
+        },
+        "f703-0x280000": {
+          "Action": 10,
+          "Text": "f"
+        },
+        "0x7f-0x80000": {
+          "Action": 11,
+          "Text": "0x1b 0x7f"
+        },
+        "f728-0x80000": {
+          "Action": 10,
+          "Text": "d"
+        },
+        "f702-0x300000": {
+          "Action": 11,
+          "Text": "0x1"
+        },
+        "f703-0x300000": {
+          "Action": 11,
+          "Text": "0x5"
+        },
+        "0x7f-0x100000": {
+          "Action": 11,
+          "Text": "0x15"
+        }
+      },
       "Show Status Bar": true,
       "Status Bar Layout": {
         "components": [
