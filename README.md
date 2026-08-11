@@ -41,8 +41,8 @@ Dynamic Profile에는 다음 값이 들어 있습니다.
 - 새 세션의 디렉터리: 현재 세션 디렉터리 재사용
 - 새 창의 기본 크기: 200 columns × 50 rows
 - Shell Integration 자동 로드: 켜기
-- 폰트: JetBrains Mono Nerd Font Mono 14pt
-    - iTerm2 프로필 값: `JetBrainsMonoNFM-Regular 14`
+- 폰트: JetBrains Mono Nerd Font Mono 13pt
+    - iTerm2 프로필 값: `JetBrainsMonoNFM-Regular 13`
 - 안티앨리어싱: 켜기
 - 내장 Powerline 글리프: 켜기
 - 얇은 획: 사용 안 함
@@ -322,9 +322,9 @@ Dynamic Profile과 앱 전체 설정을 최신 설치 전 상태로 함께 되�
 - Dynamic Profiles는 iTerm2 2.9 계열 이후에서 사용할 수 있습니다.
 - **Load shell integration automatically**는 iTerm2 3.5 이상에서 지원됩니다. 더 오래된 버전에서는 **iTerm2 → Install Shell Integration**을 사용하거나 현재 버전의 Profiles → General 안내를 따르세요.
 - 상태바의 JSON 내부 구조는 공개 UI 이름보다 버전 영향을 더 받을 수 있습니다. 구성 요소가 보이지 않으면 **Settings → Profiles → Session → Configure Status Bar**에서 Current Directory, Git State, Host Name, Job Name을 직접 다시 추가하세요.
-- 설치 스크립트는 Homebrew의 `font-jetbrains-mono-nerd-font` 패키지에 포함된 `JetBrainsMonoNerdFontMono-Regular.ttf`를 확인하고, iTerm2 프로필에 정확한 PostScript 이름인 `JetBrainsMonoNFM-Regular 14`를 강제로 기록합니다. 폰트가 보이지 않으면
-  iTerm2를 완전히 종료했다가 다시 실행하고 **Settings → Profiles → Text**에서 값이 `JetBrainsMono Nerd Font Mono Regular 14`로 표시되는지 확인하세요.
-- 한글 모양이 마음에 들지 않으면 **Settings → Profiles → Text**에서 Non-ASCII용 별도 폰트를 켜고 D2Coding 14pt를 지정하세요. D2Coding 설치 여부와 내부 폰트 이름이 배포판마다 달라 자동 적용하지 않았습니다.
+- 설치 스크립트는 Homebrew의 `font-jetbrains-mono-nerd-font` 패키지에 포함된 `JetBrainsMonoNerdFontMono-Regular.ttf`를 확인하고, iTerm2 프로필에 정확한 PostScript 이름인 `JetBrainsMonoNFM-Regular 13`를 강제로 기록합니다. 폰트가 보이지 않으면
+  iTerm2를 완전히 종료했다가 다시 실행하고 **Settings → Profiles → Text**에서 값이 `JetBrainsMono Nerd Font Mono Regular 13`으로 표시되는지 확인하세요.
+- 한글 모양이 마음에 들지 않으면 **Settings → Profiles → Text**에서 Non-ASCII용 별도 폰트를 켜고 D2Coding 13pt를 지정하세요. D2Coding 설치 여부와 내부 폰트 이름이 배포판마다 달라 자동 적용하지 않았습니다.
 - 키 매핑은 iTerm2가 `PresetKeyMappings.plist`로 배포하는 Natural Text Editing 프리셋과 동일한 형식(프로필의 `Keyboard Map`)을 사용하며, iTerm2 3.6.11에서 확인했습니다. 단축키가 동작하지 않으면 **Settings → Profiles → Keys → Key Mappings** 목록에 7개 항목이 보이는지 먼저 확인하세요.
 - Git/원격 호스트/디렉터리 상태 표시가 비어 있으면 새 세션에서 Shell Integration이 동작하는지 먼저 확인하세요. 일반적인 로컬 로그인 셸에서는 이 프로필이 자동 로드를 요청합니다.
 

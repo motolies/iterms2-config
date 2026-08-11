@@ -13,7 +13,7 @@ BACKUP_ROOT="$HOME/Library/Application Support/iTerm2/RecommendedSettingsBackups
 FONT_CASK="font-jetbrains-mono-nerd-font"
 FONT_FILE="$HOME/Library/Fonts/JetBrainsMonoNerdFontMono-Regular.ttf"
 FONT_POSTSCRIPT_NAME="JetBrainsMonoNFM-Regular"
-FONT_SIZE="14"
+FONT_SIZE="13"
 
 apply_globals=1
 install_font=1
