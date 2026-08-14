@@ -2,6 +2,8 @@
 
 이 묶음은 기존 색상과 개인 설정을 최대한 보존하면서 `Developer Recommended`라는 Dynamic Profile을 추가합니다. 앱 전체에 적용되는 종료 확인과 기록 저장 설정은 설치 전 Preferences를 백업한 뒤 별도로 적용합니다.
 
+터미널 설정은 `./install.sh`, 셸 쪽 히스토리 자동완성은 `./install-zsh.sh`로 나뉘어 있습니다. 두 스크립트는 서로 독립적이라 필요한 쪽만 설치해도 됩니다. 자세한 내용은 [히스토리 자동완성](#히스토리-자동완성)을 보세요.
+
 ## 가장 안전하게 설치하기
 
 1. iTerm2를 완전히 종료합니다.
@@ -69,19 +71,19 @@ Hotkey Window는 단축키 충돌과 화면 배치가 개인마다 달라 자동
 
 macOS의 다른 텍스트 입력란처럼 `⌥←`/`⌥→`로 단어를 건너뛰고, `⌘←`/`⌘→`로 줄 처음과 끝으로 이동하는 매핑이 프로필에 들어 있습니다.
 
-| 키               | 동작                       | iTerm2가 보내는 값 | 셸 동작(zsh/bash 공통) |
-|------------------|----------------------------|--------------------|------------------------|
-| `⌥←`             | 한 단어 왼쪽으로 이동      | `ESC b`            | `backward-word`        |
-| `⌥→`             | 한 단어 오른쪽으로 이동    | `ESC f`            | `forward-word`         |
-| `⌥⌫`             | 커서 앞 단어 삭제          | `ESC DEL`          | `backward-kill-word`   |
-| `⌥`+`fn`+`Delete` | 커서 뒤 단어 삭제          | `ESC d`            | `kill-word`            |
-| `⌘←`             | 줄 처음으로 이동           | `0x01` (`^A`)      | `beginning-of-line`    |
-| `⌘→`             | 줄 끝으로 이동             | `0x05` (`^E`)      | `end-of-line`          |
-| `⌘⌫`             | 줄 전체 삭제               | `0x15` (`^U`)      | `kill-whole-line`      |
+| 키                | 동작                    | iTerm2가 보내는 값 | 셸 동작(zsh/bash 공통) |
+|-------------------|-------------------------|--------------------|------------------------|
+| `⌥←`              | 한 단어 왼쪽으로 이동   | `ESC b`            | `backward-word`        |
+| `⌥→`              | 한 단어 오른쪽으로 이동 | `ESC f`            | `forward-word`         |
+| `⌥⌫`              | 커서 앞 단어 삭제       | `ESC DEL`          | `backward-kill-word`   |
+| `⌥`+`fn`+`Delete` | 커서 뒤 단어 삭제       | `ESC d`            | `kill-word`            |
+| `⌘←`              | 줄 처음으로 이동        | `0x01` (`^A`)      | `beginning-of-line`    |
+| `⌘→`              | 줄 끝으로 이동          | `0x05` (`^E`)      | `end-of-line`          |
+| `⌘⌫`              | 줄 전체 삭제            | `0x15` (`^U`)      | `kill-whole-line`      |
 
 ### 왜 셸 설정이 아니라 iTerm2 키 매핑인가
 
-왼쪽 Option이 `Esc+`이므로 `⌥b`/`⌥f`는 원래부터 단어 이동이 됩니다. 하지만 `⌥←`는 `^[^[[D`라는 시퀀스를 보내는데, zsh(zle)와 bash(readline) 어느 쪽에도 이 시퀀스의 기본 바인딩이 없어 아무 일도 일어나지 않습니다.
+왼쪽 Option이 `Esc+`이므로 `⌥b`/`⌥f`는 원래부터 단어 이동이 됩니다. 하지만 `⌥←`는 `^[^[[D`라는 시퀀스를 보내는데, zsh (zle)와 bash (readline) 어느 쪽에도 이 시퀀스의 기본 바인딩이 없어 아무 일도 일어나지 않습니다.
 
 ```bash
 zsh -i -c 'bindkey "\eb"; bindkey "\e\e[D"'
@@ -89,20 +91,124 @@ zsh -i -c 'bindkey "\eb"; bindkey "\e\e[D"'
 # "^[^[[D" undefined-key   ← ⌥← 는 정의 없음
 ```
 
-그래서 `~/.zshrc`에 `bindkey`를 추가하는 대신, iTerm2 단계에서 `⌥←`를 아예 `ESC b`로 바꿔 보냅니다. `ESC b`/`ESC f`는 zle와 readline 양쪽의 표준 바인딩이라, **SSH로 접속한 원격 서버나 Docker 컨테이너에서도 그대로 동작합니다.** 셸 설정 파일을 고치는 방식은 그 파일이 있는 로컬 셸에만 적용됩니다.
+그래서 `~/.zshrc`에 `bindkey`를 추가하는 대신, iTerm2 단계에서 `⌥←`를 아예 `ESC b`로 바꿔 보냅니다. `ESC b`/`ESC f`는 zle와 readline 양쪽의 표준 바인딩이라, **SSH로 접속한 원격 서버나 Docker 컨테이너에서도 그대로 동작합니다.** 셸 설정 파일을 고치는 방식은 그 파일이 있는 로컬 셸에만
+적용됩니다.
 
-이 매핑은 iTerm2가 앱 번들에 담아 배포하는 **Natural Text Editing** 프리셋
-(`/Applications/iTerm.app/Contents/Resources/PresetKeyMappings.plist`)과 동일한 값이며, 프로필 키 매핑은 `Option Key Sends` 설정보다 우선 적용되므로 기존 `Esc+` 설정과 충돌하지 않습니다. 좌우 어느 Option 키를 눌러도 동작하므로, 오른쪽 Option의 악센트 문자 입력(`Normal`)도 그대로 유지됩니다.
+이 매핑은 iTerm2가 앱 번들에 담아 배포하는 **Natural Text Editing** 프리셋 (`/Applications/iTerm.app/Contents/Resources/PresetKeyMappings.plist`)과 동일한 값이며, 프로필 키 매핑은 `Option Key Sends` 설정보다 우선 적용되므로 기존 `Esc+` 설정과 충돌하지
+않습니다. 좌우 어느 Option 키를 눌러도 동작하므로, 오른쪽 Option의 악센트 문자 입력 (`Normal`)도 그대로 유지됩니다.
 
 ### 공식 프리셋과 다른 점 한 가지
 
-Natural Text Editing 프리셋에는 수식키 없는 `fn`+`Delete`를 `0x04`(`^D`)로 보내는 항목이 하나 더 있는데, **이 묶음에서는 일부러 제외했습니다.** `^D`는 셸 밖에서 EOF 신호라 `cat`, Python REPL, `docker run -it` 같은 상황에서 프로그램이 종료됩니다. 제외하면 iTerm2 기본값 `^[[3~`가 유지되고 zsh에서 `delete-char`로 정상 동작하므로 더 안전하고 정확합니다.
+Natural Text Editing 프리셋에는 수식키 없는 `fn`+`Delete`를 `0x04`(`^D`)로 보내는 항목이 하나 더 있는데, **이 묶음에서는 일부러 제외했습니다.** `^D`는 셸 밖에서 EOF 신호라 `cat`, Python REPL, `docker run -it` 같은 상황에서 프로그램이 종료됩니다. 제외하면 iTerm2 기본값
+`^[[3~`가 유지되고 zsh에서 `delete-char`로 정상 동작하므로 더 안전하고 정확합니다.
 
 ### GUI에서 확인하고 바꾸기
 
 1. **Settings → Profiles → Developer Recommended → Keys → Key Mappings**에서 위 7개 항목을 확인할 수 있습니다.
-2. **Presets...** 버튼 → **Natural Text Editing**을 누르면 iTerm2 원본 프리셋(`fn`+`Delete` 포함 8개)으로 덮어씁니다.
+2. **Presets...** 버튼 → **Natural Text Editing**을 누르면 iTerm2 원본 프리셋 (`fn`+`Delete` 포함 8개)으로 덮어씁니다.
 3. 이 프로필은 `Rewritable`이 켜져 있어 GUI에서 바꾼 내용이 Dynamic Profile 파일에 다시 기록됩니다. 저장소에 반영하려면 `./export-preferences.sh`로 내보낸 뒤 `profiles/developer-recommended.json`의 `Keyboard Map`에 옮기세요.
+
+## 히스토리 자동완성
+
+이전에 실행한 명령을 다시 쓸 때 전체를 다시 타이핑하지 않도록, zsh 쪽에 세 가지 보조 수단을 얹습니다. 앞 절의 키 매핑이 iTerm2가 보내는 **바이트**를 다루는 것과 달리, 이 절은 zsh가 그 입력을 **어떻게 해석하는지**를 다루므로 셸 설정 파일에 들어갑니다.
+
+### 설치
+
+```sh
+./install-zsh.sh
+```
+
+Homebrew로 다음 패키지를 설치하고, `~/.zshrc` 맨 끝에 이 저장소의 `zsh/zshrc-additions.zsh`를 불러오는 세 줄짜리 블록을 추가합니다.
+
+| 패키지                         | 역할                                                      |
+|--------------------------------|-----------------------------------------------------------|
+| `zsh-autosuggestions`          | 입력 중인 명령 뒤에 이전 실행 기록을 회색으로 미리 보여줌 |
+| `zsh-history-substring-search` | `↑` `↓`로 **부분 문자열** 히스토리 검색                   |
+| `zsh-syntax-highlighting`      | 존재하지 않는 명령을 입력 단계에서 빨간색으로 구분        |
+| `fzf`                          | `Ctrl-R` 퍼지 검색 목록, `Ctrl-T` 파일 경로 검색          |
+
+`~/.zshrc`는 수정 전에 `~/.zshrc.backups/zshrc.install-날짜-번호`로 백업합니다. 여러 번 실행해도 블록은 하나만 유지되며, 새로 만든 파일이 `zsh -n` 문법 검사를 통과하지 못하면 원본을 그대로 두고 중단합니다.
+
+Homebrew 설치를 건너뛰고 `~/.zshrc` 설정만 적용하려면 다음을 사용합니다.
+
+```sh
+./install-zsh.sh --skip-brew
+```
+
+### 단축키
+
+| 키             | 동작                                           | 담당                         |
+|----------------|------------------------------------------------|------------------------------|
+| `→` 또는 `End` | 회색으로 표시된 제안을 전체 수락               | zsh-autosuggestions          |
+| `⌥→`           | 제안을 한 단어만 수락                          | zsh-autosuggestions          |
+| `↑` `↓`        | 입력한 문자열이 **포함된** 이전 명령 순회      | zsh-history-substring-search |
+| `Ctrl-R`       | 목록에서 퍼지 검색으로 선택                    | fzf                          |
+| `Ctrl-T`       | 파일 경로를 퍼지 검색해 현재 줄에 삽입         | fzf                          |
+| `Ctrl-/`       | `Ctrl-R` 목록에서 긴 명령의 전체 내용 미리보기 | fzf                          |
+
+`ssh`까지만 입력하면 가장 최근에 접속한 서버 명령이 회색으로 따라붙고, `→` 한 번으로 완성됩니다. 서버가 여러 대라면 `↑` `↓`로 넘기며 고릅니다.
+
+### oh-my-zsh 기본 동작과 달라지는 점
+
+oh-my-zsh는 `lib/key-bindings.zsh`에서 `↑`를 `up-line-or-beginning-search`에 연결해 두는데, 이것도 히스토리 검색이긴 하지만 **입력한 내용으로 시작하는** 명령만 찾습니다. 이 묶음은 같은 키를 `history-substring-search-up`으로 바꿔 **중간에 포함된** 경우까지 찾도록 합니다.
+
+```text
+설정 전:  100 + ↑  →  아무것도 찾지 못함 ("100"으로 시작하는 명령이 없으므로)
+설정 후:  100 + ↑  →  ssh -p 22339 knw1234@192.168.0.100
+```
+
+IP 뒷자리, 프로젝트 폴더 이름, 옵션 값처럼 명령 중간에 있는 조각만 기억날 때 유용합니다. 대신 `ssh`를 입력하면 `ssh-add`처럼 그 문자열을 포함하기만 한 명령도 함께 걸립니다.
+
+히스토리 중복 처리도 함께 조정합니다. oh-my-zsh 기본값인 `hist_ignore_dups`는 **연속으로** 같은 명령을 실행한 경우에만 중복을 제거하므로, 같은 명령을 며칠에 걸쳐 반복하면 개별 항목으로 계속 쌓여 `↑` 순회가 지저분해집니다. `hist_ignore_all_dups`로 확장해 히스토리 전체에서 중복을 남기지 않습니다. 이 설정은
+**새로 추가되는 항목부터** 적용되며 이미 쌓인 기록을 소급해 정리하지는 않습니다.
+
+### 왜 plugins 배열이 아니라 별도 파일인가
+
+oh-my-zsh는 `~/.zshrc`의 `plugins=(...)` 배열에 이름을 넣는 방식을 안내하지만, 이 묶음은 `zsh/zshrc-additions.zsh`에서 직접 순서를 지정해 불러옵니다.
+
+세 플러그인은 로드 순서에 제약이 있습니다. `zsh-syntax-highlighting`은 그 시점에 정의된 위젯을 감싸는 방식이라 다른 위젯이 모두 정의된 뒤에 와야 하고, `zsh-history-substring-search`는 자체 강조 기능 때문에 그보다 **더 뒤**에 와야 합니다. 배열에 이름만 나열하면 나중에 플러그인을 추가할 때 이 순서가
+조용히 깨질 수 있습니다.
+
+별도 파일로 두면 `~/.zshrc`에 남는 흔적이 마커 주석이 붙은 블록 하나뿐이라, 제거할 때 그 블록만 걷어내면 설치 전 파일과 완전히 같아집니다.
+
+### 확인하기
+
+새 탭을 열고 다음을 실행해 키가 실제로 교체됐는지 봅니다.
+
+```sh
+bindkey '^[[A'   # history-substring-search-up 이어야 합니다
+bindkey '^R'     # fzf-history-widget 이어야 합니다
+```
+
+셸 시작이 느려졌는지 확인하려면 다음을 비교합니다.
+
+```sh
+for i in 1 2 3; do /usr/bin/time zsh -i -c exit; done
+```
+
+`brew --prefix`와 `fzf --zsh`는 실행할 때마다 하위 프로세스를 띄우므로, 설정 파일은 Homebrew 경로를 미리 판별하고 fzf 초기화 결과를 `~/.cache/fzf-init.zsh`에 캐시합니다. 캐시는 fzf 바이너리가 갱신되면 자동으로 다시 만듭니다.
+
+### 되돌리기
+
+`~/.zshrc`에서 설정 블록만 제거합니다. Homebrew 패키지는 남습니다.
+
+```sh
+./uninstall-zsh.sh
+```
+
+설치 직전 백업으로 `~/.zshrc` 전체를 되돌리려면 다음을 사용합니다. 설치 이후 `~/.zshrc`에 직접 추가한 다른 내용도 함께 사라집니다.
+
+```sh
+./uninstall-zsh.sh --restore-latest
+```
+
+Homebrew 패키지까지 제거하려면 다음을 사용합니다. `fzf`는 다른 용도로도 쓰이므로 제거 대상에서 빼 두었습니다.
+
+```sh
+./uninstall-zsh.sh --purge
+```
+
+어느 경우든 `↑` 키는 oh-my-zsh 기본 동작인 접두어 검색으로 돌아갑니다.
 
 ## 상태바 항목 선택하기
 
@@ -325,7 +431,8 @@ Dynamic Profile과 앱 전체 설정을 최신 설치 전 상태로 함께 되�
 - 설치 스크립트는 Homebrew의 `font-jetbrains-mono-nerd-font` 패키지에 포함된 `JetBrainsMonoNerdFontMono-Regular.ttf`를 확인하고, iTerm2 프로필에 정확한 PostScript 이름인 `JetBrainsMonoNFM-Regular 13`를 강제로 기록합니다. 폰트가 보이지 않으면
   iTerm2를 완전히 종료했다가 다시 실행하고 **Settings → Profiles → Text**에서 값이 `JetBrainsMono Nerd Font Mono Regular 13`으로 표시되는지 확인하세요.
 - 한글 모양이 마음에 들지 않으면 **Settings → Profiles → Text**에서 Non-ASCII용 별도 폰트를 켜고 D2Coding 13pt를 지정하세요. D2Coding 설치 여부와 내부 폰트 이름이 배포판마다 달라 자동 적용하지 않았습니다.
-- 키 매핑은 iTerm2가 `PresetKeyMappings.plist`로 배포하는 Natural Text Editing 프리셋과 동일한 형식(프로필의 `Keyboard Map`)을 사용하며, iTerm2 3.6.11에서 확인했습니다. 단축키가 동작하지 않으면 **Settings → Profiles → Keys → Key Mappings** 목록에 7개 항목이 보이는지 먼저 확인하세요.
+- 키 매핑은 iTerm2가 `PresetKeyMappings.plist`로 배포하는 Natural Text Editing 프리셋과 동일한 형식 (프로필의 `Keyboard Map`)을 사용하며, iTerm2 3.6.11에서 확인했습니다. 단축키가 동작하지 않으면 **Settings → Profiles → Keys → Key Mappings** 목록에 7개
+  항목이 보이는지 먼저 확인하세요.
 - Git/원격 호스트/디렉터리 상태 표시가 비어 있으면 새 세션에서 Shell Integration이 동작하는지 먼저 확인하세요. 일반적인 로컬 로그인 셸에서는 이 프로필이 자동 로드를 요청합니다.
 
 ## 공식 문서
