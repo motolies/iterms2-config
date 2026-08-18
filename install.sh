@@ -152,6 +152,7 @@ if [ "$apply_globals" -eq 1 ]; then
     defaults write "$DOMAIN" QuitWhenAllWindowsClosed -bool false
     defaults write "$DOMAIN" SavePasteHistory -bool false
     defaults write "$DOMAIN" StatusBarPosition -int 1
+    defaults write "$DOMAIN" AdvancedPasteWaitsForPromptByDefault -bool false
     globals_applied=1
   fi
 fi
@@ -172,7 +173,7 @@ printf '  Dynamic Profile: %s\n' "$TARGET_PROFILE"
 printf '  폰트: %s %spt\n' "$FONT_POSTSCRIPT_NAME" "$FONT_SIZE"
 printf '  백업: %s\n' "$backup_dir"
 if [ "$globals_applied" -eq 1 ]; then
-  printf '%s\n' "  앱 전체 설정: 종료 확인/창 종료 동작/기록 저장/상태바 하단 배치 적용됨"
+  printf '%s\n' "  앱 전체 설정: 종료 확인/창 종료 동작/기록 저장/상태바 하단 배치/붙여넣기 프롬프트 대기 해제 적용됨"
 else
   printf '%s\n' "  앱 전체 설정: 변경하지 않음"
 fi

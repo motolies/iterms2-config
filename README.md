@@ -64,6 +64,7 @@ Dynamic Profile에는 다음 값이 들어 있습니다.
 - 모든 창을 닫아도 iTerm2 자동 종료하지 않기
 - 복사/붙여넣기 및 명령 기록을 디스크에 저장하지 않기
 - 상태바 위치: 아래쪽
+- Advanced Paste의 "Wait for shell prompt before pasting each line" 기본값: 체크 해제 (그 외 붙여넣기 옵션은 iTerm2 기본값 유지)
 
 Hotkey Window는 단축키 충돌과 화면 배치가 개인마다 달라 자동 생성하지 않습니다. 필요하면 **Settings → Keys → Hotkey → Create a Dedicated Hotkey Window**에서 직접 추가하는 편이 안전합니다.
 
