@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 #
-# iterms2-config — zsh 히스토리 자동완성 설정
+# iterms2-config — zsh 히스토리 자동완성 · 마지막 작업 디렉터리 기억
 #
 # 이 파일은 ~/.zshrc 맨 끝에서 source 되며, oh-my-zsh 로드가 끝난 뒤에 실행된다.
 # omz 가 lib/history.zsh 와 lib/key-bindings.zsh 에서 설정한 값을 덮어써야 하므로
@@ -13,6 +13,7 @@
 #   4) zsh-syntax-highlighting    — 커스텀 위젯 정의가 모두 끝난 뒤
 #   5) zsh-history-substring-search — 하이라이터보다 반드시 뒤(공식 요구사항)
 #   6) 키 바인딩
+#   7) 마지막 작업 디렉터리 기억   — 위 순서와 무관하나 파일 끝에 둔다
 
 # 같은 셸에서 중복 로드되는 것을 막는다.
 if [[ -n ${_ITERMS2_CONFIG_ZSH_LOADED:-} ]]; then
@@ -134,3 +135,46 @@ if (( $+widgets[history-substring-search-up] )); then
 fi
 
 unfunction _iterms2_source_plugin
+
+# ---------------------------------------------------------------------------
+# 7) 마지막 작업 디렉터리 기억
+# ---------------------------------------------------------------------------
+# iTerm2 프로필의 "Reuse previous session's directory"(Custom Directory=Recycle)는
+# 직전 세션을 참조하는 방식이라, 앱을 완전히 종료하면 참조할 세션이 사라져 다시 켠 첫
+# 창이 홈에서 시작한다. 그 빈틈만 메우려고 마지막 디렉터리를 파일에 남겨 두고 복원한다.
+#
+# 캐시가 아니라 state 에 둔다. 캐시 청소 도구가 지워 버리면 기능이 조용히 죽는다.
+typeset -g _ITERMS2_LAST_DIR_FILE=${XDG_STATE_HOME:-$HOME/.local/state}/iterms2-config/last-dir
+
+# 현재 디렉터리를 상태 파일에 기록한다. 여러 탭이 동시에 쓸 수 있으므로 임시 파일에 쓴 뒤
+# 같은 파일시스템 안에서 mv 로 갈아끼워, 반쯤 쓰인 파일이 남지 않게 한다.
+_iterms2_save_last_dir() {
+  local dir=${_ITERMS2_LAST_DIR_FILE:h}
+  [[ -d $dir ]] || mkdir -p $dir 2>/dev/null || return 0
+
+  local tmp=$_ITERMS2_LAST_DIR_FILE.$$
+  print -r -- $PWD >| $tmp 2>/dev/null && mv -f $tmp $_ITERMS2_LAST_DIR_FILE 2>/dev/null
+  return 0
+}
+
+# chpwd() 함수를 직접 정의하면 oh-my-zsh 플러그인이 걸어 둔 훅을 조용히 덮어쓴다.
+# 이 파일은 omz 뒤에 로드되므로 반드시 add-zsh-hook 으로 덧붙여야 한다.
+autoload -Uz add-zsh-hook
+add-zsh-hook chpwd _iterms2_save_last_dir
+
+# 복원은 세 조건을 모두 만족할 때만 한다.
+#   interactive          — 스크립트 실행용 셸의 작업 위치는 바꾸지 않는다
+#   TERM_PROGRAM=iTerm.app — VS Code 터미널 등 다른 곳에서 뜬 셸은 건드리지 않는다.
+#                            tmux 는 이 값을 tmux 로 덮어쓰므로 자동으로 제외된다
+#   PWD == HOME          — 새 탭·분할은 Recycle 이, 복원된 세션은 창 복원이 이미 올바른
+#                          디렉터리를 넘겨준다. 홈에서 시작한 경우만 콜드 스타트로 보고
+#                          이동하므로 세 장치가 서로를 덮어쓰지 않는다
+if [[ -o interactive && ${TERM_PROGRAM:-} == iTerm.app && $PWD == $HOME ]]; then
+  () {
+    [[ -r $_ITERMS2_LAST_DIR_FILE ]] || return 0
+    local last=$(<$_ITERMS2_LAST_DIR_FILE)
+    # 기록해 둔 폴더가 지워졌어도 셸은 정상 기동해야 한다.
+    [[ -n $last && $last != $HOME && -d $last ]] && cd -- $last
+    return 0
+  }
+fi

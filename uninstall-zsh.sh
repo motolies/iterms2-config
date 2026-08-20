@@ -8,6 +8,8 @@ MARKER_BEGIN="# >>> iterms2-config zsh additions >>>"
 MARKER_END="# <<< iterms2-config zsh additions <<<"
 PACKAGES=(zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search)
 FZF_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/fzf-init.zsh"
+LAST_DIR_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/iterms2-config"
+LAST_DIR_FILE="$LAST_DIR_STATE_DIR/last-dir"
 
 purge=0
 restore_latest=0
@@ -121,6 +123,16 @@ if [ -f "$FZF_CACHE" ]; then
   printf '  fzf 캐시 삭제: %s\n' "$FZF_CACHE"
 fi
 
+# 마지막 작업 디렉터리 기록도 설정 파일이 만든 부산물이다. 상위 디렉터리는 이 저장소
+# 전용이지만 다른 파일이 들어 있을 수 있으므로 비어 있을 때만 지운다.
+if [ -f "$LAST_DIR_FILE" ]; then
+  rm -f "$LAST_DIR_FILE"
+  printf '  마지막 작업 디렉터리 기록 삭제: %s\n' "$LAST_DIR_FILE"
+fi
+if [ -d "$LAST_DIR_STATE_DIR" ]; then
+  rmdir "$LAST_DIR_STATE_DIR" 2>/dev/null || true
+fi
+
 if [ "$purge" -eq 1 ]; then
   if ! command -v brew >/dev/null 2>&1; then
     printf '%s\n' "Homebrew를 찾을 수 없어 패키지는 제거하지 못했습니다." >&2
@@ -137,4 +149,5 @@ fi
 printf '\n'
 printf '%s\n' \
   "새 셸에 반영하려면: exec zsh" \
-  "↑ 키는 oh-my-zsh 기본 동작(접두어 검색)으로 돌아갑니다."
+  "↑ 키는 oh-my-zsh 기본 동작(접두어 검색)으로 돌아갑니다." \
+  "iTerm2를 껐다 켠 첫 창은 다시 홈에서 시작합니다. 창 복원(./install.sh)은 그대로 유지됩니다."

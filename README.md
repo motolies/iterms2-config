@@ -40,7 +40,7 @@ Dynamic Profile만 추가하고 앱 전체 설정은 바꾸지 않으려면 다�
 Dynamic Profile에는 다음 값이 들어 있습니다.
 
 - Command: 로그인 셸
-- 새 세션의 디렉터리: 현재 세션 디렉터리 재사용
+- 새 세션의 디렉터리: 현재 세션 디렉터리 재사용 (`Custom Directory` = `Recycle`). 새 탭·분할·새 창이 직전 세션의 폴더를 물려받습니다. 다만 iTerm2를 완전히 종료하면 참조할 직전 세션이 없어 다시 켠 첫 창은 홈에서 시작합니다. 이 빈틈은 [마지막 작업 디렉터리 기억](#마지막-작업-디렉터리-기억)이 메웁니다.
 - 새 창의 기본 크기: 200 columns × 50 rows
 - Shell Integration 자동 로드: 켜기
 - 폰트: JetBrains Mono Nerd Font Mono 13pt
@@ -65,8 +65,57 @@ Dynamic Profile에는 다음 값이 들어 있습니다.
 - 복사/붙여넣기 및 명령 기록을 디스크에 저장하지 않기
 - 상태바 위치: 아래쪽
 - Advanced Paste의 "Wait for shell prompt before pasting each line" 기본값: 체크 해제 (그 외 붙여넣기 옵션은 iTerm2 기본값 유지)
+- iTerm2 종료 시 창 상태 유지: 켜기 (다시 켜면 이전 창·탭이 각자의 작업 디렉터리에서 복원됩니다)
 
 Hotkey Window는 단축키 충돌과 화면 배치가 개인마다 달라 자동 생성하지 않습니다. 필요하면 **Settings → Keys → Hotkey → Create a Dedicated Hotkey Window**에서 직접 추가하는 편이 안전합니다.
+
+## 마지막 작업 디렉터리 기억
+
+"새 세션은 마지막으로 쓰던 폴더에서 시작"은 하나의 스위치가 아니라, 각각 다른 상황을 맡는 세 장치가 겹쳐서 만들어집니다.
+
+| 장치 | 담당하는 상황 | 설치 스크립트 |
+|------|---------------|---------------|
+| 프로필 `Custom Directory` = `Recycle` | iTerm2가 켜져 있는 동안의 새 탭·분할·새 창 | `./install.sh` |
+| 앱 전체 설정 `NSQuitAlwaysKeepsWindows` | `⌘Q`로 **정상 종료**한 뒤 다시 켰을 때. 이전 창·탭이 통째로 복원됨 | `./install.sh` |
+| zsh 훅 | 강제 종료·재부팅처럼 창 복원이 실패했을 때의 안전망 | `./install-zsh.sh` |
+
+### 창 복원
+
+macOS의 **시스템 설정 → 데스크탑 및 Dock → "앱을 종료할 때 창 닫기"** 가 켜져 있으면 창 복원이 동작하지 않습니다. `install.sh`는 이 값을 전역(`NSGlobalDomain`)이 아니라 **iTerm2 도메인에만** 뒤집어 씁니다. AppKit이 앱 도메인을 전역보다 먼저 읽으므로, 다른 앱의 종료 동작은 그대로 두고 iTerm2만 예외로 만들 수 있습니다.
+
+```sh
+defaults read com.googlecode.iterm2 NSQuitAlwaysKeepsWindows   # 1이면 켜짐
+```
+
+iTerm2 쪽 **Settings → General → Startup → Window restoration policy**는 기본값인 `Use System Window Restoration Setting`이어야 합니다. `Open No Windows`나 `Open Default Window Arrangement`로 바꿔 두면 복원이 무시되므로, `install.sh`가 그 상태를 감지하면 경고를 출력합니다.
+
+정상 종료 후 다음 경로가 생겼는지로도 확인할 수 있습니다.
+
+```sh
+ls ~/Library/Saved\ Application\ State/com.googlecode.iterm2.savedState/
+```
+
+### zsh 훅
+
+`zsh/zshrc-additions.zsh`가 `chpwd` 훅으로 현재 폴더를 기록해 두고, 새 셸에서 되돌립니다.
+
+```sh
+cat "${XDG_STATE_HOME:-$HOME/.local/state}/iterms2-config/last-dir"
+```
+
+되돌리는 조건을 좁게 잡아 다른 동작을 덮어쓰지 않게 했습니다. **대화형 셸**이고, **iTerm2에서 뜬 셸**(`TERM_PROGRAM=iTerm.app`)이며, **시작 위치가 홈일 때**만 이동합니다. 새 탭은 `Recycle`이, 복원된 세션은 창 복원이 이미 올바른 폴더를 넘겨주므로 시작 위치가 홈이 아니고, 따라서 훅이 개입하지 않습니다. VS Code 터미널이나 tmux 안에서도 동작하지 않습니다.
+
+기록해 둔 폴더가 그사이 지워졌다면 이동하지 않고 홈에 머무릅니다.
+
+### 끄기
+
+창 복원만 끄려면 다음을 실행하고 iTerm2를 다시 시작합니다.
+
+```sh
+defaults delete com.googlecode.iterm2 NSQuitAlwaysKeepsWindows
+```
+
+zsh 훅만 끄려면 `./uninstall-zsh.sh`를 실행합니다. 기록 파일도 함께 지웁니다.
 
 ## 단어 단위 이동과 줄 편집 단축키
 
@@ -127,6 +176,8 @@ Homebrew로 다음 패키지를 설치하고, `~/.zshrc` 맨 끝에 이 저장�
 | `zsh-history-substring-search` | `↑` `↓`로 **부분 문자열** 히스토리 검색                   |
 | `zsh-syntax-highlighting`      | 존재하지 않는 명령을 입력 단계에서 빨간색으로 구분        |
 | `fzf`                          | `Ctrl-R` 퍼지 검색 목록, `Ctrl-T` 파일 경로 검색          |
+
+같은 파일에 [마지막 작업 디렉터리 기억](#마지막-작업-디렉터리-기억) 훅도 들어 있어 함께 켜집니다. 추가 패키지는 필요하지 않습니다.
 
 `~/.zshrc`는 수정 전에 `~/.zshrc.backups/zshrc.install-날짜-번호`로 백업합니다. 여러 번 실행해도 블록은 하나만 유지되며, 새로 만든 파일이 `zsh -n` 문법 검사를 통과하지 못하면 원본을 그대로 두고 중단합니다.
 
@@ -209,7 +260,7 @@ Homebrew 패키지까지 제거하려면 다음을 사용합니다. `fzf`는 다
 ./uninstall-zsh.sh --purge
 ```
 
-어느 경우든 `↑` 키는 oh-my-zsh 기본 동작인 접두어 검색으로 돌아갑니다.
+어느 경우든 `↑` 키는 oh-my-zsh 기본 동작인 접두어 검색으로 돌아가고, 마지막 작업 디렉터리 기록 파일도 함께 지워집니다. `./install.sh`로 켠 창 복원은 그대로 남습니다.
 
 ## 상태바 항목 선택하기
 

@@ -153,10 +153,26 @@ if [ "$apply_globals" -eq 1 ]; then
     defaults write "$DOMAIN" SavePasteHistory -bool false
     defaults write "$DOMAIN" StatusBarPosition -int 1
     defaults write "$DOMAIN" AdvancedPasteWaitsForPromptByDefault -bool false
+    # macOS의 "앱 종료 시 창 닫기"를 iTerm2 도메인에서만 뒤집는다. AppKit은 앱 도메인을
+    # NSGlobalDomain보다 먼저 읽으므로, 전역 설정을 건드리지 않고 iTerm2만 예외로 만들 수
+    # 있다. 이 값이 켜져 있어야 정상 종료한 창·탭이 각자의 작업 디렉터리로 복원된다.
+    defaults write "$DOMAIN" NSQuitAlwaysKeepsWindows -bool true
     globals_applied=1
   fi
 fi
 printf '%s\n' "$globals_applied" > "$backup_dir/globals-applied"
+
+# 시작 정책이 기본값("Use System Window Restoration Setting")이 아니면 위에서 켠 창 복원이
+# 무시된다. 의도적으로 바꿔 둔 값일 수 있어 덮어쓰지 않고 알리기만 한다.
+if [ "$globals_applied" -eq 1 ]; then
+  for startup_key in OpenArrangementAtStartup OpenNoWindowsAtStartup AlwaysOpenWindowAtStartup; do
+    if [ "$(defaults read "$DOMAIN" "$startup_key" 2>/dev/null || echo 0)" != "0" ]; then
+      printf '%s\n' \
+        "주의: $startup_key 가 켜져 있어 창 복원이 동작하지 않습니다." \
+        "      Settings → General → Startup에서 “Use System Window Restoration Setting”을 선택하세요." >&2
+    fi
+  done
+fi
 
 latest_link="$BACKUP_ROOT/latest"
 if [ -L "$latest_link" ]; then
@@ -173,7 +189,7 @@ printf '  Dynamic Profile: %s\n' "$TARGET_PROFILE"
 printf '  폰트: %s %spt\n' "$FONT_POSTSCRIPT_NAME" "$FONT_SIZE"
 printf '  백업: %s\n' "$backup_dir"
 if [ "$globals_applied" -eq 1 ]; then
-  printf '%s\n' "  앱 전체 설정: 종료 확인/창 종료 동작/기록 저장/상태바 하단 배치/붙여넣기 프롬프트 대기 해제 적용됨"
+  printf '%s\n' "  앱 전체 설정: 종료 확인/창 종료 동작/기록 저장/상태바 하단 배치/붙여넣기 프롬프트 대기 해제/종료 시 창 상태 유지 적용됨"
 else
   printf '%s\n' "  앱 전체 설정: 변경하지 않음"
 fi
